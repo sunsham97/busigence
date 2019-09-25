@@ -7,20 +7,33 @@ let customerCsv = 'customers.csv';
 let ordersCsv = 'orders.csv'
 
 
-function getAllCollections() {
- MongoClient.connect(url,(err,db)=>{
+ module.exports.getAllDatabases = function (callback){
+    MongoClient.connect(url,{useNewUrlParser: true, useUnifiedTopology:true},(err,db)=>{
+    if (err) throw err;
+    let adminDb = db.db('admin');
+    adminDb.admin().listDatabases((err,result)=>{
+        if (err) throw err;
+        // console.log('mongomod',result);
+        db.close();
+        callback(result);
+    });
+  });
+}
+
+module.exports.getAllCollections = function (dbName,callback) {
+ MongoClient.connect(url,{useNewUrlParser: true},(err,db)=>{
     if(err) throw err;
-    let dbObj = db.db('busigence');
+    let dbObj = db.db(dbName);
     dbObj.listCollections().toArray((err,result)=>{
         if (err) throw err;
-        console.log(result);
+        // console.log(result);
         db.close();
-        return result;
+        callback(result);
     })
  });
 }
 
-function createCustomerCollection(){
+module.exports.createCustomerCollection = function (){
     csv().fromFile(customerCsv).then(customerJson=>{
         MongoClient.connect(url,{useNewUrlParser: true},(err,db)=>{
             if (err) throw err;
@@ -34,9 +47,11 @@ function createCustomerCollection(){
     });
 }
 
-function createOrderCollection(){
+// createCustomerCollection();
+
+module.exports.createOrderCollection = function (){
     csv().fromFile(ordersCsv).then(orderJson=>{
-        MongoClient.connect(url,{useNewUrlParser: true},(err,db)=>{
+        MongoClient.connect(url,{useNewUrlParser: true}, {useUnifiedTopology: true},(err,db)=>{
             if(err) throw err;
             let dbObj = db.db('busigence');
             dbObj.collection('orders').insertMany(orderJson,(err,res)=>{
@@ -48,49 +63,51 @@ function createOrderCollection(){
     });
 }
 
-function getCollectionData(collectionName){
+// createOrderCollection();
+
+module.exports.getCollectionData = function (dbName,collectionName,callback){
     MongoClient.connect(url,{useNewUrlParser:true},(err,db)=>{
         if(err) throw err;
-        let dbObj = db.db('busigence');
+        let dbObj = db.db(dbName);
         dbObj.collection(collectionName).find({}).toArray((err,res)=>{
             if(err) throw err;
             db.close();
-            return res;
+            callback(res);
         });
     });
 }
 
 
-function transformSort(collectionName,columnName,sortingType){
-    MongoClient.connect(url,{useNewUrlParser:true},(err,db)=>{
+module.exports.transformSort = function (dbName,collectionName,columnName,sortingType,callback){
+    MongoClient.connect(url,{useNewUrlParser:true, useUnifiedTopology: true},(err,db)=>{
         if(err) throw err;
-        let dbObj = db.db('busigence');
-        dbObj.collection(collectionName).find().sort({[columnName]:sortingType}).toArray((err,res)=>{
+        let dbObj = db.db(dbName);
+        dbObj.collection(collectionName).find().sort({[columnName]:parseInt(sortingType)}).toArray((err,res)=>{
             if (err) throw err;
             console.log(`${collectionName} sorted based on column ${columnName}`);
             db.close();
-            return res;
+            callback(res);
         });
     });
 }
 
-function transformJoin(collectionOne,collectionTwo,columnName,aggregateFieldName){
+module.exports.transformJoin = function (dbName,collectionOne,collectionTwo,columnName,aggregateFieldName,callback){
     MongoClient.connect(url,{useNewUrlParser:true},(err,db)=>{
         if (err) throw err;
-        let dbObj = db.db('busigence');
+        let dbObj = db.db(dbName);
         dbObj.collection(collectionOne).aggregate([{
             $lookup:{
                 from: collectionTwo,
                 localField: columnName,
                 foreignField: columnName,
-                as: aggregateNameField
+                as: aggregateFieldName
             }
         }
     ]).toArray((err,res)=>{
         if(err) throw err;
         console.log(`${collectionOne} joined with ${collectionTwo} on ${columnName}`);
         db.close();
-        return res;
+        callback(res);
        });
     });
 }
