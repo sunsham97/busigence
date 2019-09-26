@@ -1,0 +1,71 @@
+<div class="container-fluid">
+<div class="row">
+  <div class="col-sm-3"><strong>1. Select Format</strong> <br>
+   
+      <div id="contact-form">
+
+        <input type="checkbox" value="check1" name="NOSQL" [(ngModel)]="flag1" (change)="click1()"> NOSQL
+
+        <div *ngIf="flag1" class="form-group">
+
+          <input type="text" placeholder="Username" name="username" class="form-control">
+          <input type="password" placeholder="Password" name="password" class="form-control">
+          <input type="text" placeholder="IP Address" name="ipaddress" class="form-control">
+          <input type="button" value="Submit">
+        </div>   <br>
+<hr>
+        <input type="checkbox" value="check2" name="CSV" [(ngModel)]="flag2" (change)="click2()"> CSV
+        <div *ngIf="flag2">
+            <input type="file" name="myFile" (change)=handleUpload($event)><br><br>
+           
+        </div>
+
+        
+      </div>
+     
+    
+  </div>
+  <div class="col-sm-3"><strong>2. Select Source</strong> <br>
+    <div class="tab">
+        <button class="tablinks" >NOSQL</button>
+        <button class="tablinks" [(ngModel)]="tabBoolean2" >CSV</button>
+
+   
+
+  </div>
+  <div *ngIf="flag1">
+<div *ngFor="let x of databaseArray">
+      <div class="panel-group" id="accordion">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                  {{x.database}}
+                </a>
+              </h4>
+            </div>
+            <div id="collapseOne" class="panel-collapse collapse in">
+              <div class="panel-body">
+                {{x.collection}}
+              </div>
+            </div>
+          </div>
+  </div>
+  </div>
+  </div>
+
+  <div *ngIf="flag2">
+
+    <a href="filePath">orders</a>
+  {{filePath}}
+
+  
+     </div>
+      
+  
+  </div>
+  <div class="col-sm-6"><strong>3. Visualizer</strong></div>
+
+</div>
+
+</div>
